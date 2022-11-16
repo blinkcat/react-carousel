@@ -1,6 +1,6 @@
 # react-carousel
 
-react carousel
+[demo](https://blinkcat.github.io/react-carousel/)
 
 _inspired by [flickity](https://github.com/metafizzy/flickity)_
 
