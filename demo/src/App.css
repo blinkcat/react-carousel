@@ -1,0 +1,72 @@
+.app {
+  margin-bottom: 100px;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.item {
+  width: 25%;
+  padding: 30px;
+  padding-top: 0;
+  border: 2px solid #fafafa;
+}
+
+.demo {
+  width: 700px;
+  background-color: #fafafa;
+}
+
+.demo.vertical {
+  width: 250px;
+  height: 250px;
+}
+
+.demo.vertical .placeholder {
+  margin-right: 0;
+  margin-bottom: 15px;
+}
+
+.demo .placeholder {
+  margin-right: 15px;
+}
+
+.placeholder {
+  width: 250px;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 26px;
+  user-select: none;
+  border-radius: 4px;
+}
+
+.lift-demo {
+  width: 700px;
+  height: 200px;
+  background-color: #fafafa;
+  display: flex;
+  align-items: center;
+}
+
+.lift-demo .placeholder {
+  margin-right: 15px;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+}
+
+.fade-demo {
+  width: 250px;
+}
+
+.stack-demo {
+  width: 300px;
+}

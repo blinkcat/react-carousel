@@ -2,7 +2,7 @@
 
 react carousel
 
-_highly inspired by [flickity](https://github.com/metafizzy/flickity)_
+_inspired by [flickity](https://github.com/metafizzy/flickity)_
 
 ## status
 

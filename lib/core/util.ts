@@ -15,3 +15,7 @@ export function getUniqueCellId() {
 export function mod(a: number, b: number) {
   return ((a % b) + b) % b;
 }
+
+export function within(v: number, min: number, max: number) {
+  return Math.max(Math.min(v, max), min);
+}

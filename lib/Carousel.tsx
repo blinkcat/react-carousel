@@ -2,11 +2,12 @@ import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { CarouselOptions, createStore } from './core';
 import { activate, reLayout, ReLayoutReason, updateCarouselSize } from './core/actions/carousel';
 import { updateOptions } from './core/actions/options';
-import { cellPositionSelectorWithId, sliderPositionSelector } from './core/selector';
 import useCell from './hooks/useCell';
+import useCellStyle from './hooks/useCellStyle';
 import useDispatch from './hooks/useDispatch';
 import useDrag from './hooks/useDrag';
 import useSelector, { shallow } from './hooks/useSelector';
+import useSliderStyle from './hooks/useSliderStyle';
 import { ReduxStoreContext } from './ReduxStoreContext';
 import getSize from './utils/get-size';
 
@@ -34,17 +35,19 @@ export const CarouselWithStore: React.FC<CarouselProps> = (props) => {
 
 export interface CarouselProps extends BaseProps, Partial<CarouselOptions> {
   extra?: React.ReactNode;
+  viewportClassName?: string;
+  sliderClassName?: string;
 }
 
-const Carousel: React.FC<CarouselProps> = ({ children, className, style, extra, ...options }) => {
-  const mergedStyle = useMemo<React.CSSProperties>(
-    () => ({
-      position: 'relative',
-      userSelect: options.draggable ? 'none' : 'auto',
-      ...style,
-    }),
-    [style, options.draggable]
-  );
+const Carousel: React.FC<CarouselProps> = ({
+  children,
+  className,
+  style,
+  extra,
+  viewportClassName,
+  sliderClassName,
+  ...options
+}) => {
   const dispatch = useDispatch();
 
   useLayoutEffect(() => {
@@ -61,33 +64,36 @@ const Carousel: React.FC<CarouselProps> = ({ children, className, style, extra, 
   }, [dispatch]);
 
   return (
-    <div className={className} style={mergedStyle} ref={ref}>
-      <Viewport>
-        <Slider>{children}</Slider>
+    <div className={clazz('carousel', className)} style={style} ref={ref}>
+      <Viewport className={viewportClassName}>
+        <Slider className={sliderClassName}>{children}</Slider>
       </Viewport>
       {extra}
     </div>
   );
 };
 
-interface ViewportProps extends BaseProps {}
+interface ViewportProps {
+  children?: React.ReactNode;
+  className?: string;
+}
 
-const Viewport: React.FC<ViewportProps> = ({ className, style, children }) => {
+const Viewport: React.FC<ViewportProps> = ({ className, children }) => {
   const mergedStyle = useSelector<React.CSSProperties>((state) => {
     const {
       slider: { selectedSlideIndex },
       slides,
-      options: { direction },
+      options: { direction, setCarouselSize },
     } = state;
+    const isHorizontal = direction === 'horizontal';
 
-    return {
-      overflow: 'hidden',
-      position: 'relative',
-      ...style,
-      ...(direction === 'horizontal'
-        ? { height: slides[selectedSlideIndex]?.size.outerHeight || '100%' }
-        : { width: slides[selectedSlideIndex]?.size.outerWidth || '100%', height: '100%' }),
-    };
+    if (setCarouselSize) {
+      return isHorizontal
+        ? { height: slides[selectedSlideIndex]?.size.outerHeight }
+        : { width: slides[selectedSlideIndex]?.size.outerWidth, height: '100%' };
+    } else {
+      return isHorizontal ? { height: '100%' } : { width: '100%', height: '100%' };
+    }
   }, shallow);
 
   const ref = useRef<HTMLDivElement>(null);
@@ -95,28 +101,18 @@ const Viewport: React.FC<ViewportProps> = ({ className, style, children }) => {
   useDrag(ref.current);
 
   return (
-    <div className={className} style={mergedStyle} ref={ref}>
+    <div className={clazz('carousel-viewport', className)} style={mergedStyle} ref={ref}>
       {children}
     </div>
   );
 };
 
-interface SliderProps extends BaseProps {}
+interface SliderProps {
+  children?: React.ReactNode;
+  className?: string;
+}
 
-const Slider: React.FC<SliderProps> = ({ className, style, children }) => {
-  const mergedStyle = useSelector<React.CSSProperties>((state) => {
-    const { x, y } = sliderPositionSelector(state);
-
-    return {
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
-      left: 0,
-      ...style,
-      transform: `translate(${x}px, ${y}px)`,
-    };
-  });
-
+const Slider: React.FC<SliderProps> = ({ children, className }) => {
   const [keys, cells] = useMemo(() => {
     const keys: Array<string | number> = [];
     const cells = collectCellsFromChildren(children).map((child, index) => {
@@ -131,14 +127,17 @@ const Slider: React.FC<SliderProps> = ({ className, style, children }) => {
 
     return [JSON.stringify(keys), cells];
   }, [children]);
+
   const dispatch = useDispatch();
 
   useLayoutEffect(() => {
     dispatch(reLayout(ReLayoutReason.CellsChanged));
   }, [dispatch, keys]);
 
+  const style = useSliderStyle();
+
   return (
-    <div className={className} style={mergedStyle}>
+    <div className={clazz('carousel-slider', className)} style={style}>
       {cells}
     </div>
   );
@@ -168,20 +167,19 @@ interface CarouselCellProps {
 
 const CarouselCell: React.FC<CarouselCellProps> = ({ children, index }) => {
   const [id, cellRef] = useCell(index);
-  const style = useSelector<React.CSSProperties>((state) => {
-    const { x, y } = cellPositionSelectorWithId(id)(state);
-
-    return {
-      position: 'absolute',
-      [state.options.direction === 'horizontal' ? 'left' : 'top']: 0,
-      transform: `translate(${x}px, ${y}px)`,
-    };
-  }, shallow);
-
+  const style = useCellStyle(id);
   const child = useMemo(
     () => React.cloneElement(React.Children.only(children) as React.ReactElement, { ref: cellRef }),
     [children, cellRef]
   );
 
-  return <div style={style}>{child}</div>;
+  return (
+    <div className="carousel-cell" style={style}>
+      {child}
+    </div>
+  );
 };
+
+function clazz(...args: Array<string | undefined>) {
+  return args.filter(Boolean).join(' ');
+}

@@ -12,6 +12,8 @@ export interface State {
   loop: boolean;
   direction: 'horizontal' | 'vertical';
   debug: boolean;
+  setCarouselSize: boolean;
+  effect: 'default' | 'lift' | 'fade' | 'stack';
 }
 
 export const initialState: State = {
@@ -22,10 +24,12 @@ export const initialState: State = {
   initialIndex: 0,
   freeScroll: false,
   freeScrollFriction: 0.075,
-  cellAlign: 'left',
+  cellAlign: 'center',
   loop: false,
   direction: 'horizontal',
   debug: false,
+  setCarouselSize: true,
+  effect: 'default',
 };
 
 export function reducer(state = initialState, action: CarouselAction): State {

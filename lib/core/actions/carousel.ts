@@ -1,5 +1,6 @@
 import { actionTypes, State } from '../reducers/carousel';
 import { CarouselAction, CarouselThunkAction, ElementSize } from '../types';
+import { within } from '../util';
 import { positionCells } from './cells';
 import { findCellsMayBeMoved, select } from './slider';
 import { updateSlides } from './slides';
@@ -32,6 +33,7 @@ export function activate(): CarouselThunkAction {
   return (dispatch, getState) => {
     const {
       options: { initialIndex = 0, loop },
+      slides,
     } = getState();
 
     dispatch(positionCells());
@@ -44,7 +46,7 @@ export function activate(): CarouselThunkAction {
     dispatch({
       type: actionTypes.ACTIVATE,
     });
-    dispatch(select(initialIndex, true));
+    dispatch(select(within(initialIndex, 0, slides.length - 1), true));
   };
 }
 
@@ -80,6 +82,6 @@ export function reLayout(reason = ReLayoutReason.Unknown): CarouselThunkAction {
     }
 
     dispatch(updateSlides());
-    dispatch(select(selectedSlideIndex, true));
+    dispatch(select(within(selectedSlideIndex, 0, getState().slides.length - 1)));
   };
 }
